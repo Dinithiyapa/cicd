@@ -68,7 +68,7 @@ jobs:
             sudo apt install -y ansible
 
             # Copy the playbook and roles from the repository to the EC2 instance
-            mkdir -p ~/ansible/roles/webapp/tasks
+            mkdir -p ~/ansible/webapp/tasks
             cp -r $GITHUB_WORKSPACE/webapp ~/ansible/roles/webapp
             cp $GITHUB_WORKSPACE/playbook.yml ~/ansible/playbook.yml
 
