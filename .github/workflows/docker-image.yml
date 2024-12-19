@@ -69,13 +69,21 @@ jobs:
           host: ${{ secrets.EC2_HOST_2 }}  # EC2 instance 2
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: |
+            inventory  # Path to inventory file in the repository root
+            playbook.yml  # Path to playbook.yml in the repository root
+            roles/deploy  # Path to roles directory in the repository root
+          target: ~/ansible/
+
+      - name: Run Ansible on EC2 Instance 2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            # Install Ansible if not already installed
             sudo apt update
             sudo apt install -y ansible
 
-            # Create the Ansible playbook on the instance
-            echo "${{ secrets.ANSIBLE_PLAYBOOK }}" > playbook.yml
-
-            # Run the Ansible playbook
-            ansible-playbook -i inventory.ini playbook.yml
+            # Run the playbook
+            ansible-playbook -i ~/ansible/inventory ~/ansible/playbook.yml
