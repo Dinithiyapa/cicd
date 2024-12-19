@@ -46,10 +46,13 @@ jobs:
             # Install Ansible if not already installed
             sudo apt update
             sudo apt install -y ansible
-
-
-            # Run the playbook
-            ansible-playbook -i inventory.ini playbook.yml
+            mkdir -p ~/ansible
+            echo "[web]" > ~/ansible/inventory.ini
+            echo "${{ secrets.EC2_HOST }}" >> ~/ansible/inventory.ini
+            echo "${{ secrets.EC2_HOST_2 }}" >> ~/ansible/inventory.ini
+            echo "your playbook content here" > ~/ansible/playbook.yml
+            ansible-playbook -i ~/ansible/inventory.ini ~/ansible/playbook.yml
+          
 
       # Step 6: Deploy to EC2 Instance 2 using Ansible
       - name: Deploy to EC2 Instance 2
