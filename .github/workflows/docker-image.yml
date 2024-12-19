@@ -26,14 +26,41 @@ jobs:
           push: true
           tags: yapadinithi/webapp:${{ github.sha }}
 
-      - name: Deploy to EC2 instance
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Deploy to EC2 Instance 1
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST }}  # EC2 instance 1
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            docker stop webapp || true
-            docker rm webapp || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/webapp:${{ github.sha }}
-            docker run -d --name webapp -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/webapp:${{ github.sha }}
+            # Install Ansible if not already installed
+            sudo apt update
+            sudo apt install -y ansible
+
+            # Copy Ansible Playbook to EC2
+            echo "${{ secrets.ANSIBLE_PLAYBOOK }}" > playbook.yml
+
+            # Run Ansible Playbook
+            ansible-playbook -i inventory.ini playbook.yml
+
+      - name: Deploy to EC2 Instance 2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}  # EC2 instance 2
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            # Install Ansible if not already installed
+            sudo apt update
+            sudo apt install -y ansible
+
+            # Copy Ansible Playbook to EC2
+            echo "${{ secrets.ANSIBLE_PLAYBOOK }}" > playbook.yml
+
+            # Run Ansible Playbook
+            ansible-playbook -i inventory.ini playbook.yml
