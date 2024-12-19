@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  # Job 1: Build, Push Docker Image, and Install Ansible
-  build-push:
+  # Job 1: Build and Push Docker Image
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,59 +30,44 @@ jobs:
           push: true
           tags: yapadinithi/webapp:${{ github.sha }}
 
-      # Step 4: Install Ansible
-      - name: Install Ansible
-        run: |
-          sudo apt update
-          sudo apt install -y ansible
-
-  # Job 2: Deployment to EC2 Instances
+  # Job 2: Deploy to EC2 Instances
   deploy:
     runs-on: ubuntu-latest
-    needs: build-push  # Ensure Job 1 is completed
+    needs: build-and-push  # Ensure Job 1 completes before running this job
 
     steps:
-      # Step 5: Deploy to EC2 Instance 1 using Ansible
+      # Step 1: Deploy to EC2 Instance 1
       - name: Deploy to EC2 Instance 1
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST }}  # EC2 instance 1
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
+            # Install Ansible if not already installed
             sudo apt update
             sudo apt install -y ansible
-            mkdir -p ~/ansible
-            echo "[web]" > ~/ansible/inventory.ini
-            echo "${{ secrets.EC2_HOST }}" >> ~/ansible/inventory.ini
-            echo "${{ secrets.EC2_HOST_2 }}" >> ~/ansible/inventory.ini
-            echo "- name: Example Playbook
-              hosts: web
-              tasks:
-                - name: Ensure Nginx is installed
-                  apt:
-                    name: nginx
-                    state: present" > ~/ansible/playbook.yml
-            ansible-playbook -i ~/ansible/inventory.ini ~/ansible/playbook.yml
 
-      # Step 6: Deploy to EC2 Instance 2 using Ansible
+            # Create the Ansible playbook on the instance
+            echo "${{ secrets.ANSIBLE_PLAYBOOK }}" > playbook.yml
+
+            # Run the Ansible playbook
+            ansible-playbook -i inventory.ini playbook.yml
+
+      # Step 2: Deploy to EC2 Instance 2
       - name: Deploy to EC2 Instance 2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST_2 }}
+          host: ${{ secrets.EC2_HOST_2 }}  # EC2 instance 2
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
+            # Install Ansible if not already installed
             sudo apt update
             sudo apt install -y ansible
-            mkdir -p ~/ansible
-            echo "[web]" > ~/ansible/inventory.ini
-            echo "${{ secrets.EC2_HOST_2 }}" >> ~/ansible/inventory.ini
-            echo "- name: Example Playbook
-              hosts: web
-              tasks:
-                - name: Ensure Nginx is installed
-                  apt:
-                    name: nginx
-                    state: present" > ~/ansible/playbook.yml
-            ansible-playbook -i ~/ansible/inventory.ini ~/ansible/playbook.yml
+
+            # Create the Ansible playbook on the instance
+            echo "${{ secrets.ANSIBLE_PLAYBOOK }}" > playbook.yml
+
+            # Run the Ansible playbook
+            ansible-playbook -i inventory.ini playbook.yml
