@@ -1,0 +1,45 @@
+---
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+  become: yes
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Pull Docker image from Docker Hub
+  command: docker pull yapadinithi/webapp:latest
+
+- name: Stop existing container
+  command: docker stop webapp
+  ignore_errors: yes
+
+- name: Remove existing container
+  command: docker rm webapp
+  ignore_errors: yes
+
+- name: Run Docker container
+  command: >
+    docker run -d --name webapp
+    -p 8080:8080 yapadinithi/webapp:latest
+
+- name: Manual check task
+  debug:
+    msg: |
+      The web app has been deployed. Please verify it by visiting the following URLs:
+      - http://13.49.67.237:8080
+      - http://13.48.248.113:8080
+      Press ENTER to continue or CTRL+C to abort.
+
+- name: Wait for user confirmation
+  pause:
+    prompt: "Press ENTER to confirm deployment is successful or CTRL+C to abort."
+
+- name: Print success message
+  debug:
+    msg: "Deployment completed successfully on all hosts!"
+
